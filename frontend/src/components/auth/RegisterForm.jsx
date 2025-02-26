@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { toast } from 'react-toastify';
+import '../../styles/animations.css';
 
 const RegisterForm = () => {
   const [email, setEmail] = useState('');
@@ -41,26 +43,26 @@ const RegisterForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 animate-fadeIn">
+      <div className="max-w-md w-full space-y-8 glassmorphism p-10 rounded-2xl shadow-soft animate-scaleIn">
+        <div className="animate-float">
+          <h2 className="mt-6 text-center text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-center text-sm text-gray-600 animate-slideIn">
             Or{' '}
-            <button
-              onClick={() => navigate('/login')}
-              className="font-medium text-blue-600 hover:text-blue-500"
+            <Link 
+              to="/login" 
+              className="font-medium text-blue-600 hover:text-blue-500 transition-all hover:underline"
             >
               sign in to your account
-            </button>
+            </Link>
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email-address" className="sr-only">
+          <div className="rounded-md space-y-4">
+            <div className="animate-slideIn" style={{ animationDelay: '0.1s' }}>
+              <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-1">
                 Email address
               </label>
               <input
@@ -71,12 +73,12 @@ const RegisterForm = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
+                className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg input-focus-ring focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all sm:text-sm hover:border-blue-300"
+                placeholder="Enter your email"
               />
             </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
+            <div className="animate-slideIn" style={{ animationDelay: '0.2s' }}>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 Password
               </label>
               <input
@@ -87,12 +89,12 @@ const RegisterForm = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
+                className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg input-focus-ring focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all sm:text-sm hover:border-blue-300"
+                placeholder="Create a password"
               />
             </div>
-            <div>
-              <label htmlFor="confirm-password" className="sr-only">
+            <div className="animate-slideIn" style={{ animationDelay: '0.3s' }}>
+              <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">
                 Confirm Password
               </label>
               <input
@@ -103,17 +105,17 @@ const RegisterForm = () => {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm password"
+                className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg input-focus-ring focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all sm:text-sm hover:border-blue-300"
+                placeholder="Confirm your password"
               />
             </div>
           </div>
 
-          <div>
+          <div className="animate-slideIn" style={{ animationDelay: '0.4s' }}>
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white button-gradient disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
             >
               {loading ? (
                 <div className="flex items-center">
@@ -130,7 +132,7 @@ const RegisterForm = () => {
           </div>
         </form>
 
-        <div className="mt-6">
+        <div className="mt-6 animate-slideIn" style={{ animationDelay: '0.5s' }}>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
@@ -144,7 +146,7 @@ const RegisterForm = () => {
             <button
               onClick={handleGoogleSignUp}
               disabled={loading}
-              className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="hover-scale w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               <img
                 className="h-5 w-5 mr-2"
