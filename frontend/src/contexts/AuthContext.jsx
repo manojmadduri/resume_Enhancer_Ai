@@ -9,9 +9,11 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   sendPasswordResetEmail,
+  sendEmailVerification,
 } from 'firebase/auth';
 import { toast } from 'react-toastify';
 
+// Firebase configuration
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
@@ -40,41 +42,57 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Sign up with email and password
   async function signup(email, password) {
     try {
-      const result = await createUserWithEmailAndPassword(auth, email, password);
-      toast.success('Account created successfully!');
-      return result;
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(userCredential.user);
+      toast.success('Account created! Please check your email for verification.');
+      return userCredential;
     } catch (error) {
       console.error('Signup error:', error);
-      toast.error(error.message);
+      let message = 'Failed to create account.';
+      if (error.code === 'auth/email-already-in-use') {
+        message = 'This email is already registered.';
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Invalid email address.';
+      } else if (error.code === 'auth/weak-password') {
+        message = 'Password should be at least 6 characters.';
+      }
+      toast.error(message);
       throw error;
     }
   }
 
+  // Sign in with email and password
   async function login(email, password) {
     try {
-      const result = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      if (!userCredential.user.emailVerified) {
+        await signOut(auth);
+        toast.error('Please verify your email before logging in.');
+        throw new Error('Email not verified');
+      }
+      
       toast.success('Logged in successfully!');
-      return result;
+      return userCredential;
     } catch (error) {
       console.error('Login error:', error);
-      toast.error(error.message);
+      let message = 'Failed to log in.';
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        message = 'Invalid email or password.';
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Invalid email address.';
+      } else if (error.message === 'Email not verified') {
+        message = 'Please verify your email before logging in.';
+      }
+      toast.error(message);
       throw error;
     }
   }
 
-  async function logout() {
-    try {
-      await signOut(auth);
-      toast.success('Logged out successfully!');
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast.error(error.message);
-      throw error;
-    }
-  }
-
+  // Sign in with Google
   async function loginWithGoogle() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
@@ -82,22 +100,48 @@ export function AuthProvider({ children }) {
       return result;
     } catch (error) {
       console.error('Google login error:', error);
-      toast.error(error.message);
+      let message = 'Failed to log in with Google.';
+      if (error.code === 'auth/popup-closed-by-user') {
+        message = 'Login popup was closed.';
+      } else if (error.code === 'auth/popup-blocked') {
+        message = 'Login popup was blocked. Please allow popups for this site.';
+      }
+      toast.error(message);
       throw error;
     }
   }
 
+  // Sign out
+  async function logout() {
+    try {
+      await signOut(auth);
+      toast.success('Logged out successfully!');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Failed to log out.');
+      throw error;
+    }
+  }
+
+  // Reset password
   async function resetPassword(email) {
     try {
       await sendPasswordResetEmail(auth, email);
-      toast.success('Password reset email sent!');
+      toast.success('Password reset email sent! Check your inbox.');
     } catch (error) {
       console.error('Password reset error:', error);
-      toast.error(error.message);
+      let message = 'Failed to send password reset email.';
+      if (error.code === 'auth/user-not-found') {
+        message = 'No account found with this email.';
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Invalid email address.';
+      }
+      toast.error(message);
       throw error;
     }
   }
 
+  // Listen to auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
@@ -117,17 +161,13 @@ export function AuthProvider({ children }) {
     resetPassword,
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
   return (
     <AuthContext.Provider value={value}>
-      {children}
+      {!loading ? children : (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        </div>
+      )}
     </AuthContext.Provider>
   );
 }

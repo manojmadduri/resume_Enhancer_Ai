@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'react-toastify';
 
 const LoginForm = () => {
-  console.log('LoginForm rendering'); // Add this debug log
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,7 +18,7 @@ const LoginForm = () => {
       navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
-      toast.error(error.message || 'Failed to log in');
+      // Error message is handled by AuthContext
     } finally {
       setLoading(false);
     }
@@ -32,7 +31,7 @@ const LoginForm = () => {
       navigate('/dashboard');
     } catch (error) {
       console.error('Google login error:', error);
-      toast.error(error.message || 'Failed to log in with Google');
+      // Error message is handled by AuthContext
     } finally {
       setLoading(false);
     }
@@ -47,9 +46,9 @@ const LoginForm = () => {
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Or{' '}
-            <a href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
               create a new account
-            </a>
+            </Link>
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -102,9 +101,9 @@ const LoginForm = () => {
             </div>
 
             <div className="text-sm">
-              <a href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
                 Forgot your password?
-              </a>
+              </Link>
             </div>
           </div>
 
