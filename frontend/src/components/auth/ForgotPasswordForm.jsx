@@ -1,87 +1,128 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import '../../styles/animations.css';
+import { Alert, TextField, Button, Typography, Container, Box, Paper } from '@mui/material';
+import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 
 const ForgotPasswordForm = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const { resetPassword } = useAuth();
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const auth = getAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!email) {
+      setError('Please enter your email address');
+      return;
+    }
+
     try {
       setLoading(true);
-      await resetPassword(email);
-      // Don't navigate away, let the user see the success message
+      setError('');
+      setSuccess(false);
+      
+      // Use Firebase's sendPasswordResetEmail directly
+      await sendPasswordResetEmail(auth, email, {
+        url: window.location.origin + '/login',
+        handleCodeInApp: false
+      });
+      
+      console.log('Password reset email sent to:', email);
+      setSuccess(true);
+      setEmail('');
     } catch (error) {
       console.error('Password reset error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
+      
+      let errorMessage = 'Failed to reset password.';
+      switch (error.code) {
+        case 'auth/user-not-found':
+          errorMessage = 'No account found with this email address.';
+          break;
+        case 'auth/invalid-email':
+          errorMessage = 'Please enter a valid email address.';
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = 'Too many attempts. Please try again later.';
+          break;
+        case 'auth/network-request-failed':
+          errorMessage = 'Network error. Please check your internet connection.';
+          break;
+        default:
+          errorMessage = 'An error occurred. Please try again.';
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 animate-fadeIn">
-      <div className="max-w-md w-full space-y-8 glassmorphism p-10 rounded-2xl shadow-soft animate-scaleIn">
-        <div className="animate-float">
-          <h2 className="mt-6 text-center text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-            Reset your password
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 animate-slideIn">
+    <Container maxWidth="sm">
+      <Box sx={{ mt: 8, mb: 4 }}>
+        <Paper elevation={3} sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Typography component="h1" variant="h4" gutterBottom>
+            Reset Password
+          </Typography>
+          <Typography color="textSecondary" sx={{ mb: 3 }}>
             Enter your email address and we'll send you a link to reset your password.
-          </p>
-        </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="animate-slideIn" style={{ animationDelay: '0.1s' }}>
-            <label htmlFor="email-address" className="block text-sm font-medium text-gray-700 mb-1">
-              Email address
-            </label>
-            <input
-              id="email-address"
-              name="email"
-              type="email"
-              autoComplete="email"
+          </Typography>
+
+          {error && (
+            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          {success && (
+            <Alert severity="success" sx={{ width: '100%', mb: 2 }}>
+              Password reset email sent! Please check your inbox and spam folder.
+            </Alert>
+          )}
+
+          <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+            <TextField
+              margin="normal"
               required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg input-focus-ring focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all sm:text-sm hover:border-blue-300"
-              placeholder="Enter your email"
-            />
-          </div>
-
-          <div className="animate-slideIn" style={{ animationDelay: '0.2s' }}>
-            <button
-              type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white button-gradient disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all"
-            >
-              {loading ? (
-                <div className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Sending...
-                </div>
-              ) : (
-                'Send reset link'
-              )}
-            </button>
-          </div>
-        </form>
+            />
 
-        <div className="text-center animate-slideIn" style={{ animationDelay: '0.3s' }}>
-          <Link
-            to="/login"
-            className="font-medium text-blue-600 hover:text-blue-500 transition-all hover:underline"
-          >
-            Back to login
-          </Link>
-        </div>
-      </div>
-    </div>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              disabled={loading}
+            >
+              {loading ? 'Sending...' : 'Send Reset Link'}
+            </Button>
+
+            <Box textAlign="center">
+              <Link
+                to="/login"
+                style={{ textDecoration: 'none' }}
+              >
+                <Typography color="primary" sx={{ '&:hover': { textDecoration: 'underline' } }}>
+                  Back to Login
+                </Typography>
+              </Link>
+            </Box>
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
   );
 };
 

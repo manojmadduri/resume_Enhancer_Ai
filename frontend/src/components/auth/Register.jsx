@@ -19,6 +19,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const { signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
@@ -37,7 +38,10 @@ const Register = () => {
       setError('');
       setLoading(true);
       await signup(email, password);
-      navigate('/');
+      setSuccess(true);
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
     } catch (error) {
       setError('Failed to create an account. ' + error.message);
       console.error('Signup error:', error);
@@ -82,6 +86,12 @@ const Register = () => {
           {error && (
             <Alert severity="error" sx={{ width: '100%', mb: 3 }}>
               {error}
+            </Alert>
+          )}
+
+          {success && (
+            <Alert severity="success" sx={{ width: '100%', mb: 3 }}>
+              Account created successfully!
             </Alert>
           )}
 

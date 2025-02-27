@@ -48,6 +48,7 @@ export function AuthProvider({ children }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await sendEmailVerification(userCredential.user);
       toast.success('Account created! Please check your email for verification.');
+      await signOut(auth); // Sign out immediately after registration
       return userCredential;
     } catch (error) {
       console.error('Signup error:', error);
@@ -71,7 +72,7 @@ export function AuthProvider({ children }) {
       
       if (!userCredential.user.emailVerified) {
         await signOut(auth);
-        toast.error('Please verify your email before logging in.');
+        toast.error('Please verify your email before logging in. Check your inbox for the verification link.');
         throw new Error('Email not verified');
       }
       
@@ -85,7 +86,7 @@ export function AuthProvider({ children }) {
       } else if (error.code === 'auth/invalid-email') {
         message = 'Invalid email address.';
       } else if (error.message === 'Email not verified') {
-        message = 'Please verify your email before logging in.';
+        message = 'Please verify your email before logging in. Check your inbox for the verification link.';
       }
       toast.error(message);
       throw error;
@@ -125,18 +126,26 @@ export function AuthProvider({ children }) {
 
   // Reset password
   async function resetPassword(email) {
+    if (!email) {
+      throw new Error('Email is required');
+    }
+
     try {
-      await sendPasswordResetEmail(auth, email);
-      toast.success('Password reset email sent! Check your inbox.');
+      console.log('Attempting to send password reset email to:', email);
+      const auth = getAuth();
+      
+      const actionCodeSettings = {
+        url: window.location.origin + '/login',
+        handleCodeInApp: false
+      };
+
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
+      console.log('Password reset email sent successfully');
+      return true;
     } catch (error) {
       console.error('Password reset error:', error);
-      let message = 'Failed to send password reset email.';
-      if (error.code === 'auth/user-not-found') {
-        message = 'No account found with this email.';
-      } else if (error.code === 'auth/invalid-email') {
-        message = 'Invalid email address.';
-      }
-      toast.error(message);
+      console.error('Error code:', error.code);
+      console.error('Error message:', error.message);
       throw error;
     }
   }

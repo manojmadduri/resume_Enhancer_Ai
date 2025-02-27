@@ -117,6 +117,19 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
             />
+            <Link
+              to="/forgot-password"
+              style={{ textDecoration: 'none' }}
+            >
+              <Typography
+                variant="body2"
+                color="primary"
+                align="right"
+                sx={{ mt: 1, mb: 2, '&:hover': { textDecoration: 'underline' } }}
+              >
+                Forgot Password?
+              </Typography>
+            </Link>
             <Button
               type="submit"
               fullWidth

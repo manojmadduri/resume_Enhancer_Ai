@@ -14,6 +14,7 @@ import ResumeList from './components/resume/ResumeList';
 import ResumeAnalysis from './components/resume/ResumeAnalysis';
 import PrivateRoute from './components/auth/PrivateRoute';
 import { AuthProvider } from './contexts/AuthContext';
+import ForgotPasswordForm from './components/auth/ForgotPasswordForm';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPasswordForm />} />
                 <Route
                   path="/profile"
                   element={
