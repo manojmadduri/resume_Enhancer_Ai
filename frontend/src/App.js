@@ -1,98 +1,75 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import LoginForm from './components/auth/LoginForm';
-import RegisterForm from './components/auth/RegisterForm';
-import ForgotPasswordForm from './components/auth/ForgotPasswordForm';
-import Dashboard from './components/Dashboard';
-import PrivateRoute from './components/PrivateRoute';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import './App.css';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#f50057',
-    },
-    background: {
-      default: '#f5f7fa',
-    },
-  },
-  typography: {
-    fontFamily: [
-      '-apple-system',
-      'BlinkMacSystemFont',
-      '"Segoe UI"',
-      'Roboto',
-      '"Helvetica Neue"',
-      'Arial',
-      'sans-serif',
-    ].join(','),
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none',
-          borderRadius: 8,
-          padding: '12px 24px',
-        },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 8,
-          },
-        },
-      },
-    },
-  },
-});
+import { Box } from '@mui/material';
+import theme from './theme';
+import Navigation from './components/Navigation';
+import Home from './components/Home';
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
+import Profile from './components/profile/Profile';
+import ResumeUploader from './components/resume/ResumeUploader';
+import ResumeList from './components/resume/ResumeList';
+import ResumeAnalysis from './components/resume/ResumeAnalysis';
+import PrivateRoute from './components/auth/PrivateRoute';
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthProvider>
-        <Router>
-          <div className="min-h-screen bg-gray-50">
-            <ToastContainer
-              position="top-center"
-              autoClose={5000}
-              hideProgressBar={false}
-              newestOnTop
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="light"
-            />
-            <Routes>
-              <Route path="/login" element={<LoginForm />} />
-              <Route path="/register" element={<RegisterForm />} />
-              <Route path="/forgot-password" element={<ForgotPasswordForm />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <PrivateRoute>
-                    <Dashboard />
-                  </PrivateRoute>
-                }
-              />
-              <Route path="/" element={<Navigate to="/login" replace />} />
-            </Routes>
-          </div>
-        </Router>
-      </AuthProvider>
+      <Router>
+        <AuthProvider>
+          <Box sx={{ 
+            minHeight: '100vh',
+            backgroundColor: 'background.default',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <Navigation />
+            <Box component="main" sx={{ flexGrow: 1 }}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route
+                  path="/profile"
+                  element={
+                    <PrivateRoute>
+                      <Profile />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/resume/list"
+                  element={
+                    <PrivateRoute>
+                      <ResumeList />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/resume/upload"
+                  element={
+                    <PrivateRoute>
+                      <ResumeUploader />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/resume/analysis/:id"
+                  element={
+                    <PrivateRoute>
+                      <ResumeAnalysis />
+                    </PrivateRoute>
+                  }
+                />
+              </Routes>
+            </Box>
+          </Box>
+        </AuthProvider>
+      </Router>
     </ThemeProvider>
   );
 }

@@ -1,89 +1,70 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const path = require('path');
+const fs = require('fs');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
+
+// Initialize database and Firebase after dotenv
+const pool = require('./config/db');
+const admin = require('./config/firebase');
 
 const app = express();
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
+// CORS configuration
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true
+}));
+
+// Body parser middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Serve uploaded files
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadDir));
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
+const resumeRoutes = require('./routes/resumeRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 
-// Root route
-app.get('/', (req, res) => {
-    res.json({
-        message: 'Welcome to the Authentication API',
-        version: '1.0.0',
-        endpoints: {
-            auth: {
-                base: '/api/auth',
-                routes: {
-                    register: 'POST /api/auth/register',
-                    login: 'POST /api/auth/login',
-                    googleLogin: 'POST /api/auth/google-login',
-                    forgotPassword: 'POST /api/auth/forgot-password',
-                    resetPassword: 'POST /api/auth/reset-password'
-                }
-            }
-        },
-        health: 'GET /health'
-    });
-});
-
-// Auth routes
 app.use('/api/auth', authRoutes);
+app.use('/api/resumes', resumeRoutes);
+app.use('/api/profile', profileRoutes);
 
-// Health check route
-app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime()
-    });
-});
-
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({
-        message: 'Route not found',
-        requested: {
-            path: req.path,
-            method: req.method
-        }
-    });
+// Root route for testing
+app.get('/', (req, res) => {
+    res.json({ message: 'Server is running' });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err);
-    
-    // Handle specific types of errors
-    if (err.name === 'ValidationError') {
-        return res.status(400).json({
-            message: 'Validation Error',
-            errors: err.errors
-        });
-    }
-    
-    if (err.name === 'UnauthorizedError') {
-        return res.status(401).json({
-            message: 'Unauthorized: Invalid or missing authentication token'
-        });
-    }
-    
-    // Default error response
-    res.status(err.status || 500).json({
-        message: err.message || 'Something went wrong!',
-        error: process.env.NODE_ENV === 'development' ? err : {}
+    res.status(500).json({
+        success: false,
+        error: err.message || 'Internal server error'
     });
 });
 
-const PORT = process.env.PORT || 5000;
+// Handle 404
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        error: 'Route not found'
+    });
+});
+
+const PORT = process.env.PORT || 5001;
+
+// Start server
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`API Documentation available at http://localhost:${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
+    console.log('CORS origins:', 'http://localhost:3000');
 });

@@ -1,17 +1,25 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
+// Auth database connection
+const authPool = new Pool({
+    user: process.env.DB_USER || 'postgres',
+    host: process.env.DB_HOST || 'localhost',
     database: 'auth_db',
-    password: 'password',
-    port: 5432,
+    password: process.env.DB_PASSWORD,  // Use exact password from .env
+    port: process.env.DB_PORT || 5432,
 });
 
-// Test database connection
-pool.connect()
-    .then(() => console.log('Connected to PostgreSQL database'))
-    .catch(err => console.error('Database connection error:', err));
+// Resume database connection
+const resumePool = new Pool({
+    user: process.env.DB_USER || 'postgres',
+    host: process.env.DB_HOST || 'localhost',
+    database: 'resume_enhancer',
+    password: process.env.DB_PASSWORD,  // Use exact password from .env
+    port: process.env.DB_PORT || 5432,
+});
 
-module.exports = pool;
+module.exports = {
+    authPool,
+    resumePool
+};

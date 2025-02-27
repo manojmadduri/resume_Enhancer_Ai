@@ -1,26 +1,31 @@
-const pool = require('../config/db');
+const { authPool } = require('../config/db');
+const fs = require('fs');
+const path = require('path');
 
 async function initializeDatabase() {
+    const client = await authPool.connect();
     try {
-        // Create users table
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
-                email VARCHAR(255) UNIQUE NOT NULL,
-                password VARCHAR(255),
-                auth_provider VARCHAR(50) DEFAULT 'email',
-                is_email_verified BOOLEAN DEFAULT false,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-            );
-        `);
-
-        console.log('Database initialized successfully');
-        process.exit(0);
+        // Read and execute the schema.sql file
+        const schema = fs.readFileSync(path.join(__dirname, 'auth-schema.sql'), 'utf8');
+        await client.query(schema);
+        console.log('Auth database initialized successfully');
     } catch (error) {
         console.error('Error initializing database:', error);
-        process.exit(1);
+        throw error;
+    } finally {
+        client.release();
     }
 }
 
-initializeDatabase();
+// Run the initialization
+if (require.main === module) {
+    initializeDatabase()
+        .then(() => {
+            console.log('Auth database initialization complete');
+            process.exit(0);
+        })
+        .catch(error => {
+            console.error('Auth database initialization failed:', error);
+            process.exit(1);
+        });
+}
